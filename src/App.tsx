@@ -5,23 +5,15 @@ import {
   Zap, Flame, Droplet, Leaf, Snowflake, Play, RotateCcw, Home as HomeIcon, Check, X, BarChart2, Info, Brain, Trash2, TrendingUp
 } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend } from 'recharts';
+import { shuffleArray, calculatePSI } from './lib/scoring.ts';
+import type { GameType } from './lib/scoring.ts';
 
 const ALL_SYMBOLS = [
   Star, Circle, Triangle, Square, Hexagon, Diamond, Cloud, Sun, Moon, Heart,
   Zap, Flame, Droplet, Leaf, Snowflake
 ];
 
-function shuffleArray<T>(array: T[]): T[] {
-  const newArr = [...array];
-  for (let i = newArr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-  }
-  return newArr;
-}
-
 type Screen = 'home' | 'symbol-match' | 'coding' | 'result' | 'stats';
-type GameType = 'symbol-match' | 'coding' | null;
 type TimeLimit = 30 | 60 | 120 | 'endless';
 
 type StatEntry = {
@@ -33,16 +25,6 @@ type StatEntry = {
   mistakes: number;
   timeLimit: TimeLimit;
   elapsed: number;
-};
-
-const calculatePSI = (score: number, mistakes: number, elapsedSeconds: number, gameType: GameType) => {
-  if (elapsedSeconds < 10) return 0;
-  const rawScore = Math.max(0, score - (mistakes * 1.0));
-  const ratePerMinute = (rawScore / elapsedSeconds) * 60;
-  const mean = gameType === 'symbol-match' ? 45 : 30;
-  const sd = gameType === 'symbol-match' ? 12 : 8;
-  let psi = 100 + ((ratePerMinute - mean) / sd) * 15;
-  return Math.max(40, Math.min(160, Math.round(psi)));
 };
 
 function useGameTimer(timeLimit: TimeLimit, onEnd: (elapsed: number) => void) {
